@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Master Thesis Dashboard</title>
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#101a2e; --text:#e8eefc; --muted:#aab7d8;
+      --accent:#6ea8fe; --good:#35d07f; --bad:#ff5c7a; --border:rgba(255,255,255,.08);
+      --shadow: 0 10px 30px rgba(0,0,0,.35); --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; font-family:var(--sans); color:var(--text);
+      background: radial-gradient(1200px 700px at 10% 10%, rgba(110,168,254,.18), transparent 60%),
+                  radial-gradient(900px 600px at 90% 10%, rgba(53,208,127,.12), transparent 55%),
+                  radial-gradient(900px 700px at 50% 110%, rgba(255,92,122,.10), transparent 55%),
+                  var(--bg);
+    }
+    header{ padding:22px 22px 10px; max-width:1200px; margin:0 auto; }
+    h1{ font-size:20px; margin:0; letter-spacing:.2px; }
+    .subtitle{ margin-top:6px; color:var(--muted); font-size:13px; line-height:1.35; }
+    .title{ display:flex; gap:14px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+    .top-actions{ display:flex; gap:10px; align-items:center; }
+    button{
+      font:inherit; border:1px solid var(--border); color:var(--text);
+      background:rgba(255,255,255,.04); padding:10px 12px; border-radius:12px;
+      cursor:pointer; transition: transform .05s ease, background .15s ease, border-color .15s ease;
+    }
+    button:hover{ background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.14); }
+    button:active{ transform: translateY(1px); }
+    button.primary{ background:rgba(110,168,254,.16); border-color:rgba(110,168,254,.35); }
+    .wrap{ max-width:1200px; margin:0 auto; padding:12px 22px 24px; display:grid; grid-template-columns: 280px 1fr; gap:14px; }
+    .card{ background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--border); border-radius:var(--radius); box-shadow: var(--shadow); overflow:hidden; }
+    .sidebar{ padding:14px; }
+    .sidebar h2{ font-size:13px; margin:6px 0 10px; color:var(--muted); font-weight:600; letter-spacing:.2px; }
+    .hyp-list{ display:flex; flex-direction:column; gap:8px; }
+    .hyp-btn{ text-align:left; padding:10px 12px; border-radius:14px; background:rgba(255,255,255,.03); }
+    .hyp-btn.active{ background:rgba(110,168,254,.18); border-color:rgba(110,168,254,.35); }
+    .pill{ display:inline-flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); }
+    .dot{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.25); }
+    .dot.supported{ background:rgba(53,208,127,.95); }
+    .dot.not_supported{ background:rgba(255,92,122,.95); }
+    .dot.mixed{ background:rgba(255,255,255,.65); }
+    .tabs{ display:flex; border-bottom:1px solid var(--border); background:rgba(0,0,0,.10); padding:10px; gap:10px; }
+    .tab{ flex:0 0 auto; border-radius:12px; }
+    .tab.active{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18); }
+    .content{ padding:16px 16px 18px; }
+    .section-title{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:0 0 8px; }
+    .section-title h3{ margin:0; font-size:16px; }
+    .meta{ color:var(--muted); font-size:12px; font-family:var(--mono); }
+    .box{ background:rgba(0,0,0,.12); border:1px solid var(--border); border-radius:14px; padding:12px; margin-top:10px; }
+    .label{ color:var(--muted); font-size:12px; margin-bottom:6px; }
+    .kpi-grid{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:10px; margin-top:10px; }
+    .kpi{ padding:12px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,.03); }
+    .kpi .k{ color:var(--muted); font-size:12px; }
+    .kpi .v{ font-size:18px; margin-top:4px; }
+    .badge{ display:inline-flex; align-items:center; padding:6px 10px; border-radius:999px; border:1px solid var(--border);
+      background:rgba(255,255,255,.03); font-size:12px; color:var(--muted); gap:8px; }
+    .badge strong{ color:var(--text); font-weight:600; }
+    .support.supported strong{ color:var(--good); }
+    .support.not_supported strong{ color:var(--bad); }
+    .support.mixed strong{ color:rgba(255,255,255,.85); }
+    .small{ color:var(--muted); font-size:12px; line-height:1.45; }
+    .list{ margin:8px 0 0; padding-left:18px; }
+    .list li{ margin:6px 0; color:rgba(232,238,252,.92); }
+    .hidden{ display:none; }
+    @media (max-width: 920px){ .wrap{ grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <div>
+      <h1 id="thesisTitle">Master Thesis Dashboard</h1>
+      <div class="subtitle" id="thesisSubtitle"></div>
+    </div>
+    <div class="top-actions">
+      <button id="modelM1Btn" class="primary">Model: M1</button>
+      <button id="modelM2Btn">Model: M2</button>
+      <button class="primary" id="copySummaryBtn">Copy summary</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="card sidebar">
+    <h2>Hypotheses</h2>
+    <div class="hyp-list" id="hypList"></div>
+    <div class="box">
+      <div class="label">Legend</div>
+      <div class="pill"><span class="dot supported"></span> Supported</div><br/>
+      <div class="pill"><span class="dot not_supported"></span> Not supported</div><br/>
+      <div class="pill"><span class="dot mixed"></span> Mixed / Partial</div>
+    </div>
+  </aside>
+
+  <main class="card">
+    <div class="tabs">
+      <button class="tab active" data-tab="hypothesis">Hypothesis</button>
+      <button class="tab" data-tab="results">Results</button>
+      <button class="tab" data-tab="notes">Notes</button>
+    </div>
+
+    <div class="content">
+      <div class="section-title">
+        <h3 id="sectionHeading"></h3>
+        <div class="meta" id="sectionMeta"></div>
+      </div>
+
+      <div id="tab-hypothesis">
+        <div class="badge support" id="supportBadge">
+          <span class="dot" id="supportDot"></span>
+          <span>Support: <strong id="supportText"></strong></span>
+        </div>
+
+        <div class="box">
+          <div class="label">Statement</div>
+          <div id="hypothesisStatement"></div>
+        </div>
+
+        <div class="box">
+          <div class="label">Variables / Constructs</div>
+          <ul class="list" id="hypothesisVars"></ul>
+        </div>
+      </div>
+
+      <div id="tab-results" class="hidden">
+        <div class="kpi-grid" id="kpis"></div>
+      </div>
+
+      <div id="tab-notes" class="hidden">
+        <div class="box">
+          <div class="label">Notes</div>
+          <div class="small">Add methods/limitations/future work if you want.</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  const DATA = {
+    thesis: {
+      title: "Challenges and Success Factors of Informal AI Upskilling",
+      subtitle: "Hypotheses + regression results (M1 vs M2) • N = 111"
+    },
+    hypotheses: [
+      { id:"H1", short:"Usefulness → intensity", statement:"H1: Perceived usefulness is positively related to informal AI upskilling intensity.", variables:["Perceived usefulness","Informal AI upskilling intensity"], support:"not_supported", results:{ models:{ M1:{ beta:0.003, p:".973" }, M2:{ beta:-0.007, p:".938" } } } },
+      { id:"H2", short:"Ease of use → intensity", statement:"H2: Perceived ease of use is positively related to informal AI upskilling intensity.", variables:["Perceived ease of use","Informal AI upskilling intensity"], support:"not_supported", results:{ models:{ M1:{ beta:0.189, p:".031" }, M2:{ beta:0.147, p:".095" } } } },
+      { id:"H3", short:"Peer influence → intensity", statement:"H3: Peer influence is positively related to informal AI upskilling intensity.", variables:["Peer influence","Informal AI upskilling intensity"], support:"supported", results:{ models:{ M1:{ beta:0.228, p:"< .001" }, M2:{ beta:0.175, p:".014" } } } },
+      { id:"H4", short:"AI identity → intensity", statement:"H4: AI identity is positively related to informal AI upskilling intensity.", variables:["AI identity","Informal AI upskilling intensity"], support:"supported", results:{ models:{ M1:{ beta:0.349, p:"< .001" }, M2:{ beta:0.345, p:"< .001" } } } },
+      { id:"H5", short:"Tech overload → intensity", statement:"H5: Technology overload is negatively related to informal AI upskilling intensity.", variables:["Technology overload","Informal AI upskilling intensity"], support:"not_supported", results:{ models:{ M1:{ beta:null, p:null }, M2:{ beta:-0.131, p:".053" } } } },
+      { id:"H6", short:"Manager support → intensity", statement:"H6: Managerial support is positively related to informal AI upskilling intensity.", variables:["Managerial support","Informal AI upskilling intensity"], support:"not_supported", results:{ models:{ M1:{ beta:null, p:null }, M2:{ beta:0.059, p:".362" } } } }
+    ]
+  };
+
+  const el = (id) => document.getElementById(id);
+  const state = { selectedHypIndex: 0, tab: "hypothesis", model: "M1" };
+
+  function supportLabel(s){
+    if (s === "supported") return "Supported";
+    if (s === "not_supported") return "Not supported";
+    return "Mixed / Partial";
+  }
+
+  function renderSidebar(){
+    const list = el("hypList");
+    list.innerHTML = "";
+    DATA.hypotheses.forEach((h, idx) => {
+      const b = document.createElement("button");
+      b.className = "hyp-btn" + (idx === state.selectedHypIndex ? " active" : "");
+      b.type = "button";
+      b.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <div>
+            <div style="font-weight:600;">${h.id}</div>
+            <div class="small">${h.short}</div>
+          </div>
+          <span class="dot ${h.support}"></span>
+        </div>
+      `;
+      b.addEventListener("click", () => { state.selectedHypIndex = idx; renderAll(); });
+      list.appendChild(b);
+    });
+  }
+
+  function setTab(tabName){
+    state.tab = tabName;
+    document.querySelectorAll(".tab").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tabName));
+    el("tab-hypothesis").classList.toggle("hidden", tabName !== "hypothesis");
+    el("tab-results").classList.toggle("hidden", tabName !== "results");
+    el("tab-notes").classList.toggle("hidden", tabName !== "notes");
+  }
+
+  function renderMain(){
+    const h = DATA.hypotheses[state.selectedHypIndex];
+
+    el("thesisTitle").textContent = DATA.thesis.title || "Master Thesis Dashboard";
+    el("thesisSubtitle").textContent = DATA.thesis.subtitle || "";
+
+    el("sectionHeading").textContent = `${h.id} — ${h.short}`;
+    el("sectionMeta").textContent = `Model: ${state.model} | Tab: ${state.tab}`;
+
+    el("hypothesisStatement").textContent = h.statement || "";
+    const vars = el("hypothesisVars");
+    vars.innerHTML = "";
+    (h.variables || []).forEach(v => { const li = document.createElement("li"); li.textContent = v; vars.appendChild(li); });
+
+    el("supportText").textContent = supportLabel(h.support);
+    const badge = el("supportBadge");
+    badge.classList.remove("supported", "not_supported", "mixed");
+    badge.classList.add("support", h.support);
+    el("supportDot").className = "dot " + (h.support || "mixed");
+
+    // Results: β and p for selected model
+    const model = state.model;
+    const m = h.results?.models?.[model] || { beta: null, p: null };
+    const kpis = el("kpis");
+    kpis.innerHTML = "";
+
+    const betaVal = (m.beta === null || m.beta === undefined) ? "–" : String(m.beta);
+    const pVal = (m.p === null || m.p === undefined) ? "–" : String(m.p);
+
+    [
+      { label: `β (${model})`, value: betaVal },
+      { label: `p (${model})`, value: pVal }
+    ].forEach(k => {
+      const d = document.createElement("div");
+      d.className = "kpi";
+      d.innerHTML = `<div class="k">${k.label}</div><div class="v">${k.value}</div>`;
+      kpis.appendChild(d);
+    });
+  }
+
+  function renderAll(){ renderSidebar(); setTab(state.tab); renderMain(); }
+
+  document.querySelectorAll(".tab").forEach(btn => btn.addEventListener("click", () => setTab(btn.dataset.tab)));
+
+  el("resetBtn").addEventListener("click", () => { state.selectedHypIndex = 0; state.tab = "hypothesis"; state.model = "M1"; setModelButtons(); renderAll(); });
+
+  function setModelButtons(){
+    el("modelM1Btn").classList.toggle("primary", state.model === "M1");
+    el("modelM2Btn").classList.toggle("primary", state.model === "M2");
+  }
+
+  el("modelM1Btn").addEventListener("click", () => { state.model = "M1"; setModelButtons(); renderAll(); });
+  el("modelM2Btn").addEventListener("click", () => { state.model = "M2"; setModelButtons(); renderAll(); });
+
+  el("copySummaryBtn").addEventListener("click", async () => {
+    const h = DATA.hypotheses[state.selectedHypIndex];
+    const model = state.model;
+    const m = h.results?.models?.[model] || {};
+    const lines = [
+      DATA.thesis.title,
+      `${h.id}: ${h.short}`,
+      `Model: ${model}`,
+      `Support: ${supportLabel(h.support)}`,
+      `β: ${(m.beta === null || m.beta === undefined) ? "–" : m.beta}`,
+      `p: ${(!m.p ? "–" : m.p)}`,
+      `Statement: ${h.statement}`
+    ].filter(Boolean).join("\n");
+
+    try{
+      await navigator.clipboard.writeText(lines);
+      el("copySummaryBtn").textContent = "Copied!";
+      setTimeout(()=> el("copySummaryBtn").textContent = "Copy summary", 1200);
+    }catch(e){
+      alert("Clipboard blocked by browser. Copy manually:\n\n" + lines);
+    }
+  });
+
+  renderAll();
+</script>
+</body>
+</html>
