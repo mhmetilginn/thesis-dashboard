@@ -92,8 +92,8 @@
     </div>
 
     <div class="top-actions">
-      <button id="modelM1Btn" class="primary">Model: M1</button>
-      <button id="modelM2Btn">Model: M2</button>
+      <button id="modelM1Btn" class="primary">Hierarchical Regression Model: M1</button>
+      <button id="modelM2Btn">Hierarchical Regression Model: M2</button>
       <button id="modelCOBtn">Regression: Constructs only</button>
 
       <a href="Thesis%20Summary.pdf" target="_blank" rel="noopener" style="text-decoration:none;">
@@ -351,9 +351,8 @@
     const kpis = el("kpis");
     kpis.innerHTML = "";
 
-    const betaVal = (m.beta === null || m.beta === undefined) ? "–" : String(m.beta);
-    const pVal = (m.p === null || m.p === undefined) ? "–" : String(m.p);
-
+    const betaVal = (m.beta === null || m.beta === undefined) ? `Not included in ${modelLabel(model)}` : String(m.beta);
+    const pVal = (m.p === null || m.p === undefined) ? `Not included in ${modelLabel(model)}` : String(m.p);
     [
       { label: `β (${modelLabel(model)})`, value: betaVal },
       { label: `p (${modelLabel(model)})`, value: pVal }
